@@ -23,6 +23,30 @@ auth.init_auth()
 if 'page' not in st.session_state:
     st.session_state.page = 'login'
 
+# 添加全局CSS来隐藏侧边栏中的英文标题
+st.markdown("""
+<style>
+/* 隐藏侧边栏中的默认Streamlit标题和导航 */
+header[data-testid="stHeader"] {
+    display: none;
+}
+[data-testid="collapsedControl"] {
+    display: none;
+}
+/* 隐藏 'app', 'admin question' 等英文标题 */
+span.st-emotion-cache-17lntkc.e1s6o5jp0,
+.st-emotion-cache-ue6h4q.e1y5xkzn3,
+[data-testid="stSidebarNav"] {
+    display: none !important;
+}
+/* 确保主要内容区域填满宽度 */
+.main .block-container {
+    max-width: 100%;
+    padding-top: 1rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
 def login_page():
     st.markdown("""
     <style>
@@ -72,7 +96,7 @@ def register_page():
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 2rem;
+        padding:.2rem;
         margin: 2rem auto;
         max-width: 400px;
         background-color: #f8f9fa;
@@ -112,22 +136,24 @@ def register_page():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def main():
-    # Hide sidebar
-    st.markdown("""
-    <style>
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-    .main .block-container {
-        max-width: 800px;
-        padding: 2rem;
-        margin: 0 auto;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # Don't hide sidebar anymore
     
     # Display appropriate page based on authentication and page state
     if not auth.is_logged_in():
+        # Hide sidebar for login/register pages
+        st.markdown("""
+        <style>
+        [data-testid="stSidebar"] {
+            display: none;
+        }
+        .main .block-container {
+            max-width: 800px;
+            padding: 2rem;
+            margin: 0 auto;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
         if st.session_state.page == 'login':
             login_page()
         elif st.session_state.page == 'register':
@@ -138,41 +164,51 @@ def main():
             auth.update_page_state('home')
             st.experimental_rerun()
         
-        # Create horizontal navigation menu
-        if auth.is_admin():
-            selected = option_menu(
-                menu_title=None,
-                options=["刷题中心", "错题概览", "学习数据", "个人中心", "题库管理", "用户管理"],
-                icons=['book', 'x-circle', 'clipboard-data', 'person', 'database', 'people'],
-                menu_icon="cast",
-                default_index=0,
-                orientation="horizontal",
-            )
-        else:
-            selected = option_menu(
-                menu_title=None,
-                options=["刷题中心", "错题概览", "学习数据", "个人中心"],
-                icons=['book', 'x-circle', 'clipboard-data', 'person'],
-                menu_icon="cast",
-                default_index=0,
-                orientation="horizontal",
-            )
+        # 隐藏默认的Streamlit侧边栏标题和汉堡菜单
+        st.markdown("""
+        <style>
+        /* 隐藏侧边栏顶部的标题和默认的Streamlit元素 */
+        [data-testid="stSidebarNav"] {
+            display: none;
+        }
+        /* 侧边栏顶部边距调整 */
+        .css-1d391kg {
+            padding-top: 1rem;
+        }
+        </style>
+        """, unsafe_allow_html=True)
         
-        # 保存当前选中的页面
-        auth.update_page_state(selected)
-        
-        # Display logout button
-        col1, col2 = st.columns([5, 1])
-        with col2:
+        # Create sidebar navigation menu instead of horizontal menu
+        with st.sidebar:
+            st.markdown(f"### 你好, {st.session_state.username}!")
+            
+            if auth.is_admin():
+                selected = option_menu(
+                    menu_title="导航菜单",
+                    options=["刷题中心", "错题概览", "学习数据", "个人中心", "题库管理", "用户管理"],
+                    icons=['book', 'x-circle', 'clipboard-data', 'person', 'database', 'people'],
+                    menu_icon="cast",
+                    default_index=0,
+                )
+            else:
+                selected = option_menu(
+                    menu_title="导航菜单",
+                    options=["刷题中心", "错题概览", "学习数据", "个人中心"],
+                    icons=['book', 'x-circle', 'clipboard-data', 'person'],
+                    menu_icon="cast",
+                    default_index=0,
+                )
+            
+            # Display logout button in sidebar
             if st.button("退出登录"):
                 auth.logout()
                 auth.update_page_state('login')
                 st.experimental_rerun()
+        
+        # 保存当前选中的页面
+        auth.update_page_state(selected)
                 
-        with col1:
-            st.markdown(f"### 你好, {st.session_state.username}!")
-            
-        # Display page content
+        # Display page content in main area
         if selected == "刷题中心":
             practice_page()
         elif selected == "错题概览":

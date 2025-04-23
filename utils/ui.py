@@ -11,7 +11,34 @@ def set_page_config():
         page_icon="📚",
         layout="wide",
         initial_sidebar_state="expanded",
+        menu_items={
+            'Get Help': None,
+            'Report a bug': None,
+            'About': None
+        }
     )
+    
+    # 隐藏默认的Streamlit菜单、页脚和顶部内容
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        .stDeployButton {display:none;}
+        .stToolbar {display:none !important;}
+        div[data-testid="stDecoration"] {display:none;}
+        div[data-testid="stStatusWidget"] {display:none;}
+        #stConnectionStatus {display:none}
+        div.stSidebar > div:first-child {min-height: 0;}
+        /* 移除app菜单项 */
+        div.stSidebar div.stSelectbox label {display:none;}
+        section[data-testid="stSidebar"] > div {padding-top: 0rem;}
+        /* 隐藏其他Streamlit默认元素 */
+        .css-1inwz65 {display:none;}
+        .css-18e3th9 h2 {padding-top: 0;}
+        </style>
+    """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 def apply_custom_css():
     st.markdown("""
