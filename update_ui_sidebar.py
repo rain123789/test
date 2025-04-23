@@ -1,4 +1,30 @@
-import streamlit as st
+import os
+import sys
+
+def update_app_file():
+    """
+    Updates the app.py file to use a sidebar for navigation instead of horizontal menu.
+    """
+    print("开始更新应用界面为侧边栏导航...")
+    
+    # Backup the original file
+    original_file = 'app.py'
+    backup_file = 'app.py.bak'
+    
+    if os.path.exists(original_file):
+        # Create a backup if it doesn't exist
+        if not os.path.exists(backup_file):
+            with open(original_file, 'r', encoding='utf-8') as f:
+                original_content = f.read()
+            
+            with open(backup_file, 'w', encoding='utf-8') as f:
+                f.write(original_content)
+            
+            print(f"已备份原始文件到 {backup_file}")
+        
+        # Write the updated content with sidebar navigation
+        with open(original_file, 'w', encoding='utf-8') as f:
+            f.write("""import streamlit as st
 from streamlit_option_menu import option_menu
 import database as db
 import auth
@@ -204,4 +230,14 @@ def main():
             admin_user_page()
 
 if __name__ == "__main__":
-    main()
+    main()""")
+        
+        print("应用界面已更新为侧边栏导航并隐藏左上角文件路径！")
+    else:
+        print(f"错误: 未找到文件 {original_file}")
+        return False
+    
+    return True
+
+if __name__ == "__main__":
+    update_app_file() 

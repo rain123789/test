@@ -1,52 +1,72 @@
 import os
 import sys
+import platform
 import subprocess
 import database as db
 import traceback
 
+def clear_screen():
+    """Clear the terminal screen based on the operating system."""
+    if platform.system() == "Windows":
+        os.system('cls')
+    else:  # Linux, macOS, etc.
+        os.system('clear')
+
+def set_encoding():
+    """Set the console encoding to UTF-8."""
+    if platform.system() == "Windows":
+        # On Windows, ensure UTF-8 encoding
+        os.system("chcp 65001 > nul")
+    
+    # For Python 3, this ensures encoding in stdin/stdout
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stdin, 'reconfigure'):
+        sys.stdin.reconfigure(encoding='utf-8')
+
+def make_executable(script_path):
+    """Make a script executable on Unix-like systems."""
+    if platform.system() != "Windows":
+        os.chmod(script_path, 0o755)
+
 def main():
-    print("欢迎使用计算机考试刷题备考系统!")
+    """Main function that launches the application based on the platform."""
+    set_encoding()
+    clear_screen()
     
-    # Check if database exists
-    if not os.path.exists('exam_system.db'):
-        print("初始化数据库中...")
-        try:
-            from init_db import main as init_db_main
-            init_db_main()
-            print("数据库初始化完成!")
-        except Exception as e:
-            print(f"数据库初始化失败: {e}")
-            traceback.print_exc()
-            return
+    print("计算机考试刷题备考系统启动器")
+    print("==============================")
+    print("")
     
-    # Run Streamlit app
-    print("启动应用程序...")
-    try:
-        # Try to import streamlit first to check if it's installed
-        import streamlit
-        print(f"Streamlit版本: {streamlit.__version__}")
-        
-        # Use Python module to run streamlit
-        print("正在启动Streamlit...")
-        result = subprocess.run(
-            [sys.executable, "-m", "streamlit", "run", "app.py"],
-            capture_output=True,
-            text=True
-        )
-        if result.returncode != 0:
-            print(f"Streamlit启动失败，返回码: {result.returncode}")
-            print("标准输出:")
-            print(result.stdout)
-            print("标准错误:")
-            print(result.stderr)
-    except ImportError:
-        print("错误: Streamlit未安装或无法导入")
-        print("请使用以下命令安装Streamlit和其他依赖项:")
-        print("python -m pip install -r requirements.txt")
-    except Exception as e:
-        print(f"启动失败: {e}")
-        traceback.print_exc()
-        print("请确保已安装所有依赖项: python -m pip install -r requirements.txt")
+    # Get the directory of the current script
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(current_dir)
+    
+    # Ensure the shell script is executable on Unix-like systems
+    if platform.system() != "Windows":
+        shell_script = os.path.join(current_dir, "start_app.sh")
+        make_executable(shell_script)
+    
+    print("1. 正在更新用户界面...")
+    # Run the UI update script directly
+    subprocess.run([sys.executable, "update_ui_sidebar.py"], check=True)
+    print("")
+    
+    print("2. 正在启动应用程序...")
+    print("")
+    print("提示: 如果浏览器没有自动打开，请手动访问下面显示的网址")
+    print("")
+    
+    # Start the Streamlit app
+    subprocess.run([sys.executable, "-m", "streamlit", "run", "app.py"])
+    
+    # Exit message
+    print("")
+    if platform.system() == "Windows":
+        print("程序已退出。按任意键关闭窗口...")
+        os.system("pause > nul")
+    else:
+        print("程序已退出。")
 
 if __name__ == "__main__":
     main() 
